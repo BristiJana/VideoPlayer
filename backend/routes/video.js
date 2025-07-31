@@ -26,14 +26,12 @@ router.post('/watch', auth, async (req, res) => {
     }
 
     const userId = req.user.id;
-    const userEmail = req.user.email;
     const isAdmin = req.user.isAdmin;
 
     let history = await WatchHistory.findOne({ userId, videoId });
 
     if (!history) {
-      const creditEarned = Math.floor(watchTime / 60);
-
+      const creditEarned = Math.floor(watchTime / 30);
       await WatchHistory.create({ userId, videoId, watchTime });
 
       if (!isAdmin) {
@@ -48,6 +46,7 @@ router.post('/watch', auth, async (req, res) => {
     const prevTime = history.watchTime;
     const newTime = watchTime - prevTime;
 
+
     if (newTime <= 0) {
       return res.json({ message: 'No new watch time', creditEarned: 0 });
     }
@@ -55,9 +54,8 @@ router.post('/watch', auth, async (req, res) => {
     history.watchTime = watchTime;
     await history.save();
 
-    const creditEarned = Math.floor(newTime / 60);
-    if (creditEarned > 0 && !isAdmin) {
-
+    const creditEarned = Math.floor(newTime / 30);
+    if (!isAdmin) {
       const user = await User.findById(userId);
       user.credits += creditEarned;
       await user.save();
