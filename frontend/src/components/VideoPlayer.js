@@ -42,28 +42,25 @@ const VideoPlayer = () => {
   }, [videoUrl]);
 
   function onPlayerStateChange(event) {
-    if (event.data === window.YT.PlayerState.PLAYING) {
-      const interval = setInterval(() => {
-        if (playerRef.current && playerRef.current.getCurrentTime) {
-          const current = Math.floor(playerRef.current.getCurrentTime());
+  if (event.data === window.YT.PlayerState.PLAYING) {
+    playerRef.current.interval = setInterval(() => {
+      if (playerRef.current?.getCurrentTime) {
+        const current = Math.floor(playerRef.current.getCurrentTime());
 
-          if (current % 30 === 0 && current !== watchedTime) {
-            setWatchedTime(current);
-            axios.post('http://localhost:5000/api/video/watch', {
-              videoId: id,
-              watchTime: current
-            }, {
-              headers: { Authorization: token }
-            });
-          }
+        if (current % 30 === 0) {
+          axios.post('http://localhost:5000/api/video/watch', {
+            videoId: id,
+            watchTime: current
+          }, {
+            headers: { Authorization: token }
+          }).catch(err => console.error('Watch API error:', err));
         }
-      }, 1000);
-
-      playerRef.current.interval = interval;
-    } else {
-      clearInterval(playerRef.current?.interval);
-    }
+      }
+    }, 1000);
+  } else {
+    clearInterval(playerRef.current?.interval);
   }
+}
 
   return (
 
